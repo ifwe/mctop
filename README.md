@@ -68,6 +68,11 @@ The following details are displayed in the status bar
 * `keys` - total number of keys in the metrics table
 * `packets` - packets received and dropped by libpcap (% is percentage of packets dropped)
 * `rt` - the time taken to sort and render the stats
+* `reqs` - the total number of requests recorded
+* `KB` - the total number of kilobytes of requests recorded
+* `elapsed` - the total runtime
+* `res/s` - requests per second
+* `req/k` - average requests per key
 
 ## Changelog
 

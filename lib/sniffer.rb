@@ -14,6 +14,7 @@ class MemcacheSniffer
     @metrics[:objsize] = {}
     @metrics[:reqsec]  = {}
     @metrics[:bw]    = {}
+    @metrics[:total_reqs] = 0
     @metrics[:stats]   = { :recv => 0, :drop => 0 }
 
     @semaphore = Mutex.new
@@ -41,6 +42,7 @@ class MemcacheSniffer
         bytes = $2
 
         @semaphore.synchronize do
+          @metrics[:total_reqs] += 1
           if @metrics[:calls].has_key?(key)
             @metrics[:calls][key] += 1
           else

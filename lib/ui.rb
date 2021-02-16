@@ -57,7 +57,7 @@ class UI
     render_start_t = Time.now.to_f * 1000
 
     # subtract header + footer lines
-    maxlines = lines - 3
+    maxlines = lines - 4
     offset   = 1
 
     # calculate packet loss ratio
@@ -67,14 +67,33 @@ class UI
       loss = 0
     end
 
-    # construct and render footer stats line
-    setpos(lines-2,0)
+    if sniffer.metrics[:start_time].nil? then
+      elapsed = nil
+      rps = nil
+    else
+      elapsed = Time.now.to_f - sniffer.metrics[:start_time]
+      rps = Float(sniffer.metrics[:total_reqs]) / elapsed
+    end
+
+    # construct and render footer stats lines
+    setpos(lines-3,0)
     attrset(color_pair(2))
+    key_count = sniffer.metrics[:calls].keys.count
     header_summary = sprintf "%-28s %-14s %-30s",
       "sort mode: #{sort_mode.to_s} (#{sort_order.to_s})",
-      "keys: #{sniffer.metrics[:calls].keys.count}",
+      "keys: #{key_count}",
       "packets (recv/dropped): #{sniffer.metrics[:stats][:recv]} / #{sniffer.metrics[:stats][:drop]} (#{loss}%)"
     addstr(sprintf "%-#{cols}s", header_summary)
+
+    setpos(lines-2,0)
+    header_summary2 = sprintf(
+      "reqs: %10d  elapsed: %6d  reqs/sec: %8.1f  reqs/key: %8.2f",
+      sniffer.metrics[:total_reqs],
+      elapsed.nil? ? 0 : elapsed,
+      rps.nil? ? 0 : rps,
+      key_count == 0 ? 0 : Float(sniffer.metrics[:total_reqs]) / key_count,
+    )
+    addstr(sprintf "%-#{cols}s", header_summary2)
 
     # reset colours for main key display
     attrset(color_pair(0))
@@ -83,9 +102,7 @@ class UI
 
     sniffer.semaphore.synchronize do
       # we may have seen no packets received on the sniffer thread
-      return if sniffer.metrics[:start_time].nil?
-
-      elapsed = Time.now.to_f - sniffer.metrics[:start_time]
+      return if elapsed.nil?
 
       # iterate over all the keys in the metrics hash and calculate some values
       sniffer.metrics[:calls].each do |k,v|
@@ -145,7 +162,7 @@ class UI
     # print render time in status bar
     runtime = (Time.now.to_f * 1000) - render_start_t
     attrset(color_pair(2))
-    setpos(lines-2, cols-18)
+    setpos(lines-3, cols-18)
     addstr(sprintf "rt: %8.3f (ms)", runtime)
   end
 
