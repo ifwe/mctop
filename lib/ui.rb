@@ -20,7 +20,7 @@ class UI
       init_pair(2, COLOR_WHITE, COLOR_RED)
     end
 
-    @stat_cols    = %w[ calls objsize req/sec bw(kbps) ]
+    @stat_cols    = %w[ calls objsize req/sec %reqs bw(kbps) ]
     @stat_col_width = 10
     @key_col_width  = 0
 
@@ -99,10 +99,13 @@ class UI
     attrset(color_pair(0))
 
     top = []
+    total_reqs = 0
 
     sniffer.semaphore.synchronize do
       # we may have seen no packets received on the sniffer thread
       return if elapsed.nil?
+
+      total_reqs = sniffer.metrics[:total_reqs]
 
       # iterate over all the keys in the metrics hash and calculate some values
       sniffer.metrics[:calls].each do |k,v|
@@ -143,11 +146,12 @@ class UI
         end
 
         # render each key
-        line = sprintf "%-#{@key_col_width}s %9.d %9.d %9.2f %9.2f",
+        line = sprintf "%-#{@key_col_width}s %9.d %9.d %9.2f %9.2f %9.2f",
                  display_key,
                  sniffer.metrics[:calls][k],
                  sniffer.metrics[:objsize][k],
                  sniffer.metrics[:reqsec][k],
+                 100 * Float(sniffer.metrics[:calls][k]) / total_reqs,
                  sniffer.metrics[:bw][k]
       else
         # we're not clearing the display between renders so erase past
