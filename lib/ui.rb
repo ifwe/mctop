@@ -58,7 +58,6 @@ class UI
 
     # subtract header + footer lines
     maxlines = lines - 4
-    offset   = 1
 
     # calculate packet loss ratio
     if sniffer.metrics[:stats][:recv] > 0
@@ -135,7 +134,7 @@ class UI
     for i in 0..maxlines-1
       if i < top.length
         k = top[i][0]
-        v = top[i][1]
+        #v = top[i][1]
 
         # if the key is too wide for the column truncate it and add an ellipsis
         if k.length > @key_col_width
