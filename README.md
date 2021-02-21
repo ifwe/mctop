@@ -55,9 +55,8 @@ the quickest way to get it running is to:
 
 The following key commands are available in the console UI:
 
-* `C` - sort by number of calls
+* `C` - sort by number of calls (default)
 * `S` - sort by object size
-* `R` - sort by requests/sec
 * `B` - sort by bandwidth
 * `T` - toggle sorting by ascending / descending order
 * `Q` - quits

@@ -24,11 +24,11 @@ class UI
     @stat_col_width = 10
     @key_col_width  = 0
 
+    @filter_cutoff = 0
     @commands = {
       'Q' => "quit",
       'C' => "sort by calls",
       'S' => "sort by size",
-      'R' => "sort by req/sec",
       'B' => "sort by bandwidth",
       'T' => "toggle sort order (asc|desc)"
     }
@@ -101,7 +101,7 @@ class UI
     # reset colours for main key display
     attrset(color_pair(0))
 
-    top = []
+    subset = []
     total_reqs = 0
     total_bytes = 0
 
@@ -112,25 +112,49 @@ class UI
       total_reqs = sniffer.metrics[:total_reqs]
       total_bytes = sniffer.metrics[:total_bytes]
 
-      # iterate over all the keys in the metrics hash and calculate some values
-      sniffer.metrics[:keys].each do |key, key_metrics|
-          reqsec = key_metrics[:calls] / elapsed
+      if @config[:discard_thresh] > 0
+        sniffer.metrics[:keys].each do |key, key_metrics|
+            reqsec = key_metrics[:calls] / elapsed
 
           # if req/sec is <= the discard threshold delete those keys from
           # the metrics hash - this is a hack to manage the size of the
           # metrics hash in high volume environments
           if reqsec <= @config[:discard_thresh]
             sniffer.metrics[:keys].delete(key)
-          else
-            key_metrics[:reqsec] = reqsec
           end
+        end
       end
 
-      top = sniffer.metrics[:keys].sort { |a,b| a[1][sort_mode] <=> b[1][sort_mode] }
+      # In order to reduce the size to be sorted, extract only the values
+      # we expect will be displayed.
+      subset = []
+      if sort_order == :asc
+        subset = sniffer.metrics[:keys].select { |_, v| v[sort_mode] <= @filter_cutoff }
+      else
+        subset = sniffer.metrics[:keys].select { |_, v| v[sort_mode] >= @filter_cutoff }
+      end
+
+      # If the filtered set is too small, though, then fall back to the full
+      # set. This will happen:
+      # * once each time the user changes the sorting
+      # * whenever there aren't enough entries in the full set anyway, but who cares?
+      if subset.length < maxlines
+        subset = sniffer.metrics[:keys].each
+      end
     end
 
+    top = subset.sort { |a,b| a[1][sort_mode] <=> b[1][sort_mode] }
     unless sort_order == :asc
       top.reverse!
+    end
+
+    last_index = maxlines - 1
+    if last_index >= top.length
+      last_index = top.length - 1
+    end
+
+    if last_index >= 0
+      @filter_cutoff = top[last_index][1][sort_mode]
     end
 
     for i in 0..maxlines-1
@@ -152,8 +176,8 @@ class UI
                  display_key,
                  key_metrics[:calls],
                  key_metrics[:objsize],
-                 key_metrics[:reqsec],
-                 100 * Float(sniffer.metrics[:calls][k]) / total_reqs,
+                 Float(key_metrics[:calls]) / elapsed,
+                 100 * Float(key_metrics[:calls]) / total_reqs,
                  Float(bytes) / 1024 / elapsed,
                  100 * Float(bytes) / total_bytes
       else

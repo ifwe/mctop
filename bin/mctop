@@ -18,7 +18,7 @@ sniffer = MemcacheSniffer.new(@config)
 ui      = UI.new(@config)
 
 # set default display options
-sort_mode  = :reqsec
+sort_mode  = :calls
 sort_order = :desc
 done       = false
 
@@ -48,8 +48,6 @@ until done do
       sort_mode = :calls
     when /[Ss]/
       sort_mode = :objsize
-    when /[Rr]/
-      sort_mode = :reqsec
     when /[Bb]/
       sort_mode = :bytes
     when /[Tt]/

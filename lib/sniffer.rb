@@ -50,7 +50,6 @@ class MemcacheSniffer
             key_metrics = {
               :calls => 0,
               :objsize => 0,
-              :reqsec => 0,
               :bytes => 0,
             }
             @metrics[:keys][key] = key_metrics
