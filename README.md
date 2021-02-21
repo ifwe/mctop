@@ -28,6 +28,7 @@ traffic statistics for each key seen.  It currently reports on the following met
 * **req/sec** - the number of requests per second for the key
 * **%reqs** - this key's percentage of total requests
 * **bw (kbps)** - the estimated network bandwidth consumed by this key in kilobits-per-second
+* **%bw** - this key's percentage of total bandwidth
 
 ## Getting it running
 

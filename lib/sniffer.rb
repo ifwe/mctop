@@ -15,6 +15,7 @@ class MemcacheSniffer
     @metrics[:reqsec]  = {}
     @metrics[:bw]    = {}
     @metrics[:total_reqs] = 0
+    @metrics[:total_bytes] = 0
     @metrics[:stats]   = { :recv => 0, :drop => 0 }
 
     @semaphore = Mutex.new
@@ -50,6 +51,7 @@ class MemcacheSniffer
           end
 
           @metrics[:objsize][key] = bytes.to_i
+          @metrics[:total_bytes] += bytes.to_i
         end
       end
 

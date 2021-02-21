@@ -20,7 +20,7 @@ class UI
       init_pair(2, COLOR_WHITE, COLOR_RED)
     end
 
-    @stat_cols    = %w[ calls objsize req/sec %reqs bw(kbps) ]
+    @stat_cols    = %w[ calls objsize req/sec %reqs bw(kbps) %bw]
     @stat_col_width = 10
     @key_col_width  = 0
 
@@ -86,8 +86,9 @@ class UI
 
     setpos(lines-2,0)
     header_summary2 = sprintf(
-      "reqs: %10d  elapsed: %6d  reqs/sec: %8.1f  reqs/key: %8.2f",
+      "reqs: %10d  KB: %10d  elapsed: %6d  reqs/sec: %8.1f  reqs/key: %8.2f",
       sniffer.metrics[:total_reqs],
+      sniffer.metrics[:total_bytes] / 1024,
       elapsed.nil? ? 0 : elapsed,
       rps.nil? ? 0 : rps,
       key_count == 0 ? 0 : Float(sniffer.metrics[:total_reqs]) / key_count,
@@ -99,12 +100,14 @@ class UI
 
     top = []
     total_reqs = 0
+    total_bytes = 0
 
     sniffer.semaphore.synchronize do
       # we may have seen no packets received on the sniffer thread
       return if elapsed.nil?
 
       total_reqs = sniffer.metrics[:total_reqs]
+      total_bytes = sniffer.metrics[:total_bytes]
 
       # iterate over all the keys in the metrics hash and calculate some values
       sniffer.metrics[:calls].each do |k,v|
@@ -144,14 +147,16 @@ class UI
           display_key = k
         end
 
+        bytes = sniffer.metrics[:objsize][k] * sniffer.metrics[:calls][k]
         # render each key
-        line = sprintf "%-#{@key_col_width}s %9.d %9.d %9.2f %9.2f %9.2f",
+        line = sprintf "%-#{@key_col_width}s %9.d %9.d %9.2f %9.2f %9.2f %9.2f",
                  display_key,
                  sniffer.metrics[:calls][k],
                  sniffer.metrics[:objsize][k],
                  sniffer.metrics[:reqsec][k],
                  100 * Float(sniffer.metrics[:calls][k]) / total_reqs,
-                 sniffer.metrics[:bw][k]
+                 sniffer.metrics[:bw][k],
+                 100 * Float(bytes) / total_bytes
       else
         # we're not clearing the display between renders so erase past
         # keys with blank lines if there's < maxlines of results
