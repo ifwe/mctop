@@ -51,7 +51,7 @@ until done do
     when /[Rr]/
       sort_mode = :reqsec
     when /[Bb]/
-      sort_mode = :bw
+      sort_mode = :bytes
     when /[Tt]/
       if sort_order == :desc
         sort_order = :asc

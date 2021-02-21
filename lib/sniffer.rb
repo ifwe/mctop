@@ -13,7 +13,7 @@ class MemcacheSniffer
     @metrics[:calls]   = {}
     @metrics[:objsize] = {}
     @metrics[:reqsec]  = {}
-    @metrics[:bw]    = {}
+    @metrics[:bytes]    = {}
     @metrics[:total_reqs] = 0
     @metrics[:total_bytes] = 0
     @metrics[:stats]   = { :recv => 0, :drop => 0 }
@@ -40,17 +40,20 @@ class MemcacheSniffer
       # parse key name, and size from VALUE responses
       if packet.raw_data =~ /VALUE (\S+) \S+ (\S+)/
         key   = $1
-        bytes = $2
+        bytes = $2.to_i
 
         @semaphore.synchronize do
           @metrics[:total_reqs] += 1
           if @metrics[:calls].has_key?(key)
             @metrics[:calls][key] += 1
+            @metrics[:bytes][key] += bytes
           else
             @metrics[:calls][key] = 1
+            @metrics[:bytes][key] = bytes
           end
 
-          @metrics[:objsize][key] = bytes.to_i
+          # objsize may vary over the lifetime of a memcache key
+          @metrics[:objsize][key] = bytes
           @metrics[:total_bytes] += bytes.to_i
         end
       end

@@ -20,7 +20,7 @@ class UI
       init_pair(2, COLOR_WHITE, COLOR_RED)
     end
 
-    @stat_cols    = %w[ calls objsize req/sec %reqs bw(kbps) %bw]
+    @stat_cols    = %w[ calls objsize req/sec %reqs bw(KB/s) %bw]
     @stat_col_width = 10
     @key_col_width  = 0
 
@@ -68,9 +68,11 @@ class UI
 
     if sniffer.metrics[:start_time].nil? then
       elapsed = nil
+      kbps = nil
       rps = nil
     else
       elapsed = Time.now.to_f - sniffer.metrics[:start_time]
+      kbps = Float(sniffer.metrics[:total_bytes]) / 1024 / elapsed
       rps = Float(sniffer.metrics[:total_reqs]) / elapsed
     end
 
@@ -86,12 +88,13 @@ class UI
 
     setpos(lines-2,0)
     header_summary2 = sprintf(
-      "reqs: %10d  KB: %10d  elapsed: %6d  reqs/sec: %8.1f  reqs/key: %8.2f",
+      "reqs: %10d  KB: %10d  elapsed: %6d  reqs/sec: %8.1f  reqs/key: %8.2f  KB/sec: %8.1f",
       sniffer.metrics[:total_reqs],
       sniffer.metrics[:total_bytes] / 1024,
       elapsed.nil? ? 0 : elapsed,
       rps.nil? ? 0 : rps,
       key_count == 0 ? 0 : Float(sniffer.metrics[:total_reqs]) / key_count,
+      kbps.nil? ? 0 : kbps,
     )
     addstr(sprintf "%-#{cols}s", header_summary2)
 
@@ -120,10 +123,9 @@ class UI
             sniffer.metrics[:calls].delete(k)
             sniffer.metrics[:objsize].delete(k)
             sniffer.metrics[:reqsec].delete(k)
-            sniffer.metrics[:bw].delete(k)
+            sniffer.metrics[:bytes].delete(k)
           else
             sniffer.metrics[:reqsec][k]  = v / elapsed
-            sniffer.metrics[:bw][k]    = ((sniffer.metrics[:objsize][k] * sniffer.metrics[:reqsec][k]) * 8) / 1000
           end
       end
 
@@ -147,7 +149,7 @@ class UI
           display_key = k
         end
 
-        bytes = sniffer.metrics[:objsize][k] * sniffer.metrics[:calls][k]
+        bytes = sniffer.metrics[:bytes]
         # render each key
         line = sprintf "%-#{@key_col_width}s %9.d %9.d %9.2f %9.2f %9.2f %9.2f",
                  display_key,
@@ -155,7 +157,7 @@ class UI
                  sniffer.metrics[:objsize][k],
                  sniffer.metrics[:reqsec][k],
                  100 * Float(sniffer.metrics[:calls][k]) / total_reqs,
-                 sniffer.metrics[:bw][k],
+                 Float(bytes) / 1024 / elapsed,
                  100 * Float(bytes) / total_bytes
       else
         # we're not clearing the display between renders so erase past
