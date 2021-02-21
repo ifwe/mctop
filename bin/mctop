@@ -35,12 +35,17 @@ sniff_thread = Thread.new { sniffer.start }
 
 # main loop
 until done do
+  loop_start = Time.now.to_f
   ui.header
   ui.footer
   ui.render_stats(sniffer, sort_mode, sort_order)
   refresh
 
-  key = ui.input_handler
+  delay = @config[:refresh_rate] - 1000 * (Time.now.to_f - loop_start)
+  if delay < @config[:sniff_time]
+    delay = @config[:sniff_time]
+  end
+  key = ui.input_handler(delay)
   case key
     when /[Qq]/
       done = true

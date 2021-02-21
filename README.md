@@ -49,6 +49,7 @@ the quickest way to get it running is to:
             --host=HOST                  Network host to sniff on (default all)
         -d, --discard=THRESH             Discard keys with request/sec rate below THRESH
         -r, --refresh=MS                 Refresh the stats display every MS milliseconds
+            --sniff-time=MS              Allow at least this much time to process packets
         -h, --help                       Show usage info
 
 ## User interface commands
@@ -74,6 +75,28 @@ The following details are displayed in the status bar
 * `elapsed` - the total runtime
 * `res/s` - requests per second
 * `req/k` - average requests per key
+
+## Performance
+
+Performance can get poor when many keys have been recorded; this requires a
+large amount of processing for each display loop. When the display loop gets
+slow, then the pcap buffer may not be serviced frequently enough, leading to
+packet loss.
+
+Options which affect performance are:
+
+### --refresh
+
+When the refresh delay is low, more time is spent rendering the stats, leaving
+less time available to process packets. `mctop` may not be able to meet the
+specified refresh delay, particularly when many keys accumulate.
+
+### --sniff-time
+
+If the refresh delay is low compared to the number of keys to process, then the
+time available to process packets is reduced. This option provides a minimum
+amount of time reserved to process packets, overriding `--refresh` as
+necessary.
 
 ## Changelog
 

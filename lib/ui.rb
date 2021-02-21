@@ -10,9 +10,6 @@ class UI
     cbreak
     curs_set(0)
 
-    # set keyboard input timeout - sneaky way to manage refresh rate
-    Curses.timeout = @config[:refresh_rate]
-
     if can_change_color?
       start_color
       init_pair(0, COLOR_WHITE, COLOR_BLACK)
@@ -197,11 +194,14 @@ class UI
     addstr(sprintf "rt: %8.3f (ms)", runtime)
   end
 
-  def input_handler
+  def input_handler(delay)
+    # set keyboard input timeout - sneaky way to manage refresh rate
+    Curses.timeout = delay
+
     # Curses.getch has a bug in 1.8.x causing non-blocking
     # calls to block reimplemented using IO.select
     if RUBY_VERSION =~ /^1.8/
-	   refresh_secs = @config[:refresh_rate].to_f / 1000
+	   refresh_secs = delay / 1000
 
       if IO.select([STDIN], nil, nil, refresh_secs)
         c = getch

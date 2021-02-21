@@ -30,6 +30,11 @@ class CmdLine
         @config[:refresh_rate] = refresh_rate
       end
 
+      @config[:sniff_time] = 500
+      opt.on '--sniff-time=MS', Float, 'Allow the sniffer a minimum of this many millesconds each loop' do |sniff_time|
+        @config[:sniff_time] = sniff_time
+      end
+
       opt.on_tail '-h', '--help', 'Show usage info' do
         puts opts
         exit
