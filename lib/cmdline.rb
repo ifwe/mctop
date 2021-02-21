@@ -6,6 +6,11 @@ class CmdLine
     @config = {}
 
     opts = OptionParser.new do |opt|
+      @config[:agg_filter] = nil
+      opt.on '-a', '--agg-filter=REGEX', 'Regex to filter keys; aggregates on first capture group' do |filter|
+        @config[:agg_filter] = Regexp.new(filter)
+      end
+
       opt.on('-i', '--interface=NIC', 'Network interface to sniff (required)') do |nic|
         @config[:nic] = nic
       end

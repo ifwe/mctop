@@ -44,6 +44,7 @@ the quickest way to get it running is to:
 ## Command line options
 
     Usage: mctop [options]
+        -a, --agg-filter=REGEX           Regex to filter keys; aggregates on first capture group
         -i, --interface=NIC              Network interface to sniff (required)
         -p, --port=PORT                  Network port to sniff on (default 11211)
             --host=HOST                  Network host to sniff on (default all)
@@ -77,6 +78,41 @@ The following details are displayed in the status bar
 * `res/s` - requests per second
 * `req/k` - average requests per key
 
+## Filtering
+
+Use of `--agg-filter` will have two results:
+* only keys matching the supplied regex will be reported
+* keys will be aggregated by the data matched by the first capture group
+
+In order to prevent other `()` grouping from being a capture group, use `?:` in
+each group that should be non-capturing.
+
+Aggregated keys are marked with a trailing `*` in the display. When keys are
+aggregated, there is no meaningful object size to show, so the size is
+displayed as -1; this also allows filtering on object size in order to put
+aggregated keys at the top or the bottom of the list.
+
+Note that most of the following examples include single quotes around the filter;
+these are necessary in order to prevent shells from interpreting special
+characters.
+
+Example: match any key starting with "foo:" but do not aggregate.
+`--agg-filter=^foo:`
+
+Example: match any key starting with "foo:" and aggregate.
+`--agg-filter='^(foo:)'`
+
+Example: match any key starting with "foo:" or "bar:" and aggregate.
+`--agg-filter='^((?:foo|bar):)'`
+
+Example: aggregate any key starting with "foo:" or "bar:"; display the rest
+without aggregation.
+`--agg-filter='^((?:foo|bar):|.+)'`
+
+Example: aggregate any key starting with "foo:" or "bar:"; display the rest
+with aggregation.
+`--agg-filter='(^(?:foo|bar)|^)'`
+
 ## Performance
 
 Performance can get poor when many keys have been recorded; this requires a
@@ -85,6 +121,11 @@ slow, then the pcap buffer may not be serviced frequently enough, leading to
 packet loss.
 
 Options which affect performance are:
+
+### --agg-filter
+
+This increases load on the sniffer, but if it causes substantial key
+aggregation, then the UI will need to do less work. Results may vary.
 
 ### --refresh
 
