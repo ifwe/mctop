@@ -144,8 +144,8 @@ class UI
       end
     end
 
-    top = subset.sort { |a,b| a[1][sort_mode] <=> b[1][sort_mode] }
-    unless sort_order == :asc
+    top = subset.sort { |a,b| b[1][sort_mode] <=> a[1][sort_mode] }
+    if sort_order == :asc
       top.reverse!
     end
 
