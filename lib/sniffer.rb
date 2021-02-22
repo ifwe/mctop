@@ -10,10 +10,7 @@ class MemcacheSniffer
     @host    = config[:host]
 
     @metrics = {}
-    @metrics[:calls]   = {}
-    @metrics[:objsize] = {}
-    @metrics[:reqsec]  = {}
-    @metrics[:bytes]    = {}
+    @metrics[:keys] = {}
     @metrics[:total_reqs] = 0
     @metrics[:total_bytes] = 0
     @metrics[:stats]   = { :recv => 0, :drop => 0 }
@@ -44,17 +41,24 @@ class MemcacheSniffer
 
         @semaphore.synchronize do
           @metrics[:total_reqs] += 1
-          if @metrics[:calls].has_key?(key)
-            @metrics[:calls][key] += 1
-            @metrics[:bytes][key] += bytes
-          else
-            @metrics[:calls][key] = 1
-            @metrics[:bytes][key] = bytes
-          end
-
-          # objsize may vary over the lifetime of a memcache key
-          @metrics[:objsize][key] = bytes
           @metrics[:total_bytes] += bytes.to_i
+
+          if @metrics[:keys].has_key?(key)
+            key_metrics = @metrics[:keys][key]
+          else
+            # initialize
+            key_metrics = {
+              :calls => 0,
+              :objsize => 0,
+              :reqsec => 0,
+              :bytes => 0,
+            }
+            @metrics[:keys][key] = key_metrics
+          end
+          key_metrics[:calls] += 1
+          key_metrics[:bytes] += bytes
+          # objsize may vary over the lifetime of a memcache key
+          key_metrics[:objsize] = bytes
         end
       end
 

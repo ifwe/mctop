@@ -79,7 +79,7 @@ class UI
     # construct and render footer stats lines
     setpos(lines-3,0)
     attrset(color_pair(2))
-    key_count = sniffer.metrics[:calls].keys.count
+    key_count = sniffer.metrics[:keys].keys.count
     header_summary = sprintf "%-28s %-14s %-30s",
       "sort mode: #{sort_mode.to_s} (#{sort_order.to_s})",
       "keys: #{key_count}",
@@ -113,23 +113,20 @@ class UI
       total_bytes = sniffer.metrics[:total_bytes]
 
       # iterate over all the keys in the metrics hash and calculate some values
-      sniffer.metrics[:calls].each do |k,v|
-          reqsec = v / elapsed
+      sniffer.metrics[:keys].each do |key, key_metrics|
+          reqsec = key_metrics[:calls] / elapsed
 
           # if req/sec is <= the discard threshold delete those keys from
           # the metrics hash - this is a hack to manage the size of the
           # metrics hash in high volume environments
           if reqsec <= @config[:discard_thresh]
-            sniffer.metrics[:calls].delete(k)
-            sniffer.metrics[:objsize].delete(k)
-            sniffer.metrics[:reqsec].delete(k)
-            sniffer.metrics[:bytes].delete(k)
+            sniffer.metrics[:keys].delete(key)
           else
-            sniffer.metrics[:reqsec][k]  = v / elapsed
+            key_metrics[:reqsec] = reqsec
           end
       end
 
-      top = sniffer.metrics[sort_mode].sort { |a,b| a[1] <=> b[1] }
+      top = sniffer.metrics[:keys].sort { |a,b| a[1][sort_mode] <=> b[1][sort_mode] }
     end
 
     unless sort_order == :asc
@@ -138,24 +135,24 @@ class UI
 
     for i in 0..maxlines-1
       if i < top.length
-        k = top[i][0]
-        #v = top[i][1]
+        key = top[i][0]
+        key_metrics = top[i][1]
 
         # if the key is too wide for the column truncate it and add an ellipsis
-        if k.length > @key_col_width
-          display_key = k[0..@key_col_width-4]
+        if key.length > @key_col_width
+          display_key = key[0..@key_col_width-4]
           display_key = "#{display_key}..."
         else
-          display_key = k
+          display_key = key
         end
 
-        bytes = sniffer.metrics[:bytes]
+        bytes = key_metrics[:bytes]
         # render each key
         line = sprintf "%-#{@key_col_width}s %9.d %9.d %9.2f %9.2f %9.2f %9.2f",
                  display_key,
-                 sniffer.metrics[:calls][k],
-                 sniffer.metrics[:objsize][k],
-                 sniffer.metrics[:reqsec][k],
+                 key_metrics[:calls],
+                 key_metrics[:objsize],
+                 key_metrics[:reqsec],
                  100 * Float(sniffer.metrics[:calls][k]) / total_reqs,
                  Float(bytes) / 1024 / elapsed,
                  100 * Float(bytes) / total_bytes
