@@ -30,6 +30,11 @@ class CmdLine
         @config[:refresh_rate] = refresh_rate
       end
 
+      @config[:refresh_stats] = false
+      opt.on '-s', '--[no-]refresh-stats', 'Refresh (clear) stats on display refresh' do |refresh_stats|
+        @config[:refresh_stats] = refresh_stats
+      end
+
       @config[:sniff_time] = 500
       opt.on '--sniff-time=MS', Float, 'Allow the sniffer a minimum of this many millesconds each loop' do |sniff_time|
         @config[:sniff_time] = sniff_time

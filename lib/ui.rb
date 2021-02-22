@@ -85,7 +85,7 @@ class UI
 
     setpos(lines-2,0)
     header_summary2 = sprintf(
-      "reqs: %10d  KB: %10d  elapsed: %6d  reqs/sec: %8.1f  reqs/key: %8.2f  KB/sec: %8.1f",
+      "reqs: %10d  KB: %10d  elapsed: %6.1f  reqs/sec: %8.1f  reqs/key: %8.2f  KB/sec: %8.1f",
       sniffer.metrics[:total_reqs],
       sniffer.metrics[:total_bytes] / 1024,
       elapsed.nil? ? 0 : elapsed,
@@ -137,6 +137,10 @@ class UI
       # * whenever there aren't enough entries in the full set anyway, but who cares?
       if subset.length < maxlines
         subset = sniffer.metrics[:keys].each
+      end
+
+      if @config[:refresh_stats]
+        sniffer.reinit
       end
     end
 

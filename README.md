@@ -50,6 +50,7 @@ the quickest way to get it running is to:
         -d, --discard=THRESH             Discard keys with request/sec rate below THRESH
         -r, --refresh=MS                 Refresh the stats display every MS milliseconds
             --sniff-time=MS              Allow at least this much time to process packets
+        -s, --[no-]refresh-stats         Refresh (clear) stats on display refresh
         -h, --help                       Show usage info
 
 ## User interface commands
@@ -97,6 +98,12 @@ If the refresh delay is low compared to the number of keys to process, then the
 time available to process packets is reduced. This option provides a minimum
 amount of time reserved to process packets, overriding `--refresh` as
 necessary.
+
+### --refresh-stats
+
+This will keep the working set of keys low as long as --refresh is not set too
+high. Note that this gives a more traditional top-like behavior rather than
+accumulating stats over the entire run time.
 
 ## Changelog
 

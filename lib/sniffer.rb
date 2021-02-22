@@ -9,13 +9,17 @@ class MemcacheSniffer
     @port    = config[:port]
     @host    = config[:host]
 
+    self.reinit
+    @semaphore = Mutex.new
+  end
+
+  def reinit
     @metrics = {}
     @metrics[:keys] = {}
     @metrics[:total_reqs] = 0
     @metrics[:total_bytes] = 0
     @metrics[:stats]   = { :recv => 0, :drop => 0 }
-
-    @semaphore = Mutex.new
+    @metrics[:start_time] = Time.new.to_f
   end
 
   def start
