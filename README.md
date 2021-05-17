@@ -1,4 +1,4 @@
-# mctop is an Archived Prjoect
+# mctop is an Archived Project
 
 mctop is no longer actively maintained. Your mileage with patches may vary.
 
