@@ -41,6 +41,9 @@ the quickest way to get it running is to:
     * install it locally `rake install`; or
     * run it from the repo (good for hacking) `sudo ./bin/mctop --help`
 
+Note: the ruby-pcap gem version 0.7.9 does not work older versions of ruby (at
+least 2.0.0); on old systems, install ruby-pcap 0.7.8.
+
 ## Command line options
 
     Usage: mctop [options]
